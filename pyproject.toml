@@ -10,7 +10,10 @@ requires-python = ">=3.13,<4.0.0"
 dependencies = [
     "streamlit (>=1.53.1,<2.0.0)",
     "data-layer-db @ file:///D:/monyuke-dev/python_libs/data_layer_db",
-    "langchain-ollama (>=1.0.1,<2.0.0)"
+    "langchain-ollama (>=1.0.1,<2.0.0)",
+    "ddgs (>=9.10.0,<10.0.0)",
+    "langchain (>=1.2.7,<2.0.0)",
+    "langchain-openai (>=1.1.7,<2.0.0)"
 ]
 
 [tool.poetry]
