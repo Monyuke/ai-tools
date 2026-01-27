@@ -6,8 +6,11 @@ authors = [
     {name = "\"Monyuke\"",email = "\"yusuke.sanekata@monyuke.com\""}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<4.0.0"
 dependencies = [
+    "streamlit (>=1.53.1,<2.0.0)",
+    "data-layer-db @ file:///D:/monyuke-dev/python_libs/data_layer_db",
+    "langchain-ollama (>=1.0.1,<2.0.0)"
 ]
 
 [tool.poetry]
