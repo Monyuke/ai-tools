@@ -537,3 +537,5 @@ def fetch_webpage(
     :return: Text content of the webpage
     """
     return Tools().fetch_webpage(url, part)
+
+web_tools = [web_search, find_in_page, fetch_webpage]
