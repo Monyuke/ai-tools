@@ -41,7 +41,6 @@ def sanitize_path(path: str) -> str:
 
 
 def st_agent_websearch(user_message: str) -> Document:
-    result = ""
     with st.status("検索中...", expanded=False) as status:
         st.write("開始")
 
