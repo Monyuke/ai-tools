@@ -41,55 +41,62 @@ def sanitize_path(path: str) -> str:
 
 
 def st_agent_websearch(user_message: str) -> Document:
-    with st.status("検索中...", expanded=False) as status:
-        st.write("開始")
+    for i in range(5):
+        try:
+            with st.status("検索中...", expanded=False) as status:
+                st.write("開始")
 
-        st.write("情報の収集")
-        search_result = tool_call(
-            model=model,
-            reasoning="low",
-            tools=web_tools,
-            message=dedent(
-                f"""\
-                    ユーザー要求を直接的に満たすためにWeb検索を行い情報を収集せよ。
-                    必要な情報が集まるまで検索は何度でも行うこと。必ず最低3回実行すること。
-                    本文取得が必要であれば取得すること。
-                    
-                    ユーザー要求：
-                    {user_message}
-                """
-            ),
-        )
-        st.write(f"{len(search_result)} 件収集")
+                st.write("情報の収集")
+                search_result = tool_call(
+                    model=model,
+                    reasoning="low",
+                    tools=web_tools,
+                    message=dedent(
+                        f"""\
+                            ユーザー要求を直接的に満たすためにWeb検索を行い情報を収集せよ。
+                            必要な情報が集まるまで検索は何度でも行うこと。必ず最低3回実行すること。
+                            本文取得が必要であれば取得すること。
+                            
+                            ユーザー要求：
+                            {user_message}
+                        """
+                    ),
+                )
+                st.write(f"{len(search_result)} 件収集")
 
-        st.write("ドキュメント化")
-        response = simple_ask(
-            model,
-            dedent(
-                f"""\
-                    集められた情報から、ユーザーの要求を満たすドキュメントを作成しろ。
-                    なお、ユーザーが要求しているのは特別な指示がない限り、詳細なコードではなく定義と概略である。実装手順はお前には聞いてない。
-                    お前の考えた手順は低品質かつ無意味だから出すな。一般的に行われている内容を探せ。
-                    検索結果に含まれない情報は一切出力してはならない。
+                st.write("ドキュメント化")
+                response = simple_ask(
+                    model,
+                    dedent(
+                        f"""\
+                            集められた情報から、ユーザーの要求を満たすドキュメントを作成しろ。
+                            なお、ユーザーが要求しているのは特別な指示がない限り、詳細なコードではなく定義と概略である。実装手順はお前には聞いてない。
+                            お前の考えた手順は低品質かつ無意味だから出すな。一般的に行われている内容を探せ。
+                            検索結果に含まれない情報は一切出力してはならない。
 
-                    見やすい形で整形し出力せよ。
-                    表は見づらいので単純なデータの列挙でのみ許可。
-                    基本的には見出しと文章で説明せよ。
+                            なにかを説明するときはそれが何に所属するなんなのか、出典つきで説明すること。
 
-                    1行目は必ずこのドキュメントのタイトルを出力すること。
-                    最後には必ず出典一覧をつけること。タイトル：URL形式。
+                            見やすい形で整形し出力せよ。
+                            表は見づらいので単純なデータの列挙でのみ許可。3カラム以上の表は禁止。
+                            基本的には見出しと文章で説明せよ。
 
-                    ユーザー要求：
-                    {user_message}
+                            1行目は必ずこのドキュメントのタイトルを出力すること。
+                            最後には必ず出典一覧をつけること。タイトル：URL形式。
 
-                    情報：
-                    {search_result}
-                    """
-            ),
-        )
-        sleep(1)
+                            ユーザー要求：
+                            {user_message}
 
-        status.update(label="完了", state="complete", expanded=False)
+                            情報：
+                            {search_result}
+                            """
+                    ),
+                )
+                sleep(1)
 
-        title = sanitize_path(response.split("\n")[0].strip())
-    return Document(title=title, body=response)
+                status.update(label="完了", state="complete", expanded=False)
+
+                title = sanitize_path(response.split("\n")[0].strip())
+            return Document(title=title, body=response)
+        except:
+            pass
+    raise ValueError("試行回数が限界に達しました。")
