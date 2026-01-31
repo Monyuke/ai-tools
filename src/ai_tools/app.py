@@ -97,7 +97,7 @@ if submitted_exec or submitted_plan or submitted_cmd:
             message += f"\n\n{files_md}"
 
     # AI呼び出し
-    result = simple_ask(model="gpt-oss:20b", message=message, reasoning="high")
+    result = simple_ask(model="gpt-oss:20b", message=message, reasoning="low")
     st.session_state.state.ai_message = result
 
 # ---------- ダウンロード ----------
