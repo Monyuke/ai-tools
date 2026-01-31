@@ -4,8 +4,13 @@ from .path import normalize_path, expand_path
 from .time import format_relative_time
 import ast
 
-def read_files_content(file_paths_text: str) -> str:
-    """ファイルパステキストから内容を読み込み、マークダウンで返す"""
+def read_files_content(file_paths_text: str, add_line_numbers: bool = True) -> str:
+    """ファイルパステキストから内容を読み込み、マークダウンで返す
+    
+    Args:
+        file_paths_text: ファイルパスのテキスト(改行区切り)
+        add_line_numbers: 行番号を付けるかどうか(デフォルト: True)
+    """
     if not file_paths_text.strip():
         return ""
 
@@ -46,6 +51,12 @@ def read_files_content(file_paths_text: str) -> str:
 
             with open(path, 'r', encoding='utf-8') as f:
                 file_content = f.read()
+            
+            if add_line_numbers:
+                lines = file_content.splitlines()
+                numbered_lines = [f"{i+1}: {line}" for i, line in enumerate(lines)]
+                file_content = '\n'.join(numbered_lines)
+            
             content += f"\n\n--- File: {path} {time_info} ---\n{file_content}"
         except Exception as e:
             content += f"\n\n--- File: {path} ---\n[Error: {e}]"
