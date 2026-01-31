@@ -5,7 +5,8 @@ from datetime import datetime
 from ai_tools.lib.llm import simple_ask
 from ai_tools.utils.path import normalize_path, expand_path
 from ai_tools.utils.file_io import read_files_content, generate_sourcemap
-# 既存の st_agents はそのままインポート
+from ai_tools.tools.edit import build_edit_data_list, edit_all
+
 
 @dataclass
 class AppState:
@@ -13,6 +14,7 @@ class AppState:
     user_input: str = ""
     file_paths_input: str = ""
     sourcemap_paths_input: str = ""
+
 
 # セッション状態初期化
 if "state" not in st.session_state:
@@ -26,13 +28,13 @@ file_paths = st.text_area(
     "ファイルパス（1行に1つ）",
     value="",
     key="file_paths_main",
-    help="読み込みたいファイルのパスを1行ごとに入力してください。glob形式（*, **, ?）にも対応しています"
+    help="読み込みたいファイルのパスを1行ごとに入力してください。glob形式（*, **, ?）にも対応しています",
 )
 sourcemap_paths = st.text_area(
     "ソースマップ用ファイルパス（1行に1つ）",
     value="",
     key="sourcemap_paths_main",
-    help="ソースマップを生成したいファイルのパスを1行ごとに入力してください。glob形式（*, **, ?）にも対応しています"
+    help="ソースマップを生成したいファイルのパスを1行ごとに入力してください。glob形式（*, **, ?）にも対応しています",
 )
 
 # ---------- ダウンロードボタン ----------
@@ -57,7 +59,7 @@ if user_text or file_paths or sourcemap_paths:
         data=md,
         file_name="input_with_files.md",
         mime="text/plain",
-        key="download_input_files"
+        key="download_input_files",
     )
 
 # ---------- AI実行 ----------
@@ -69,7 +71,7 @@ with st.form("ask_form"):
     with col2:
         submitted_plan = st.form_submit_button("計画")
     with col3:
-        submitted_cmd  = st.form_submit_button("diff生成")
+        submitted_cmd = st.form_submit_button("適用")
 
 if submitted_exec or submitted_plan or submitted_cmd:
     # 入力を保存
@@ -83,63 +85,6 @@ if submitted_exec or submitted_plan or submitted_cmd:
     # 追加フラグ
     if submitted_plan:
         message += "\n\n以上の要求を満たすよう計画して。"
-    elif submitted_cmd:
-        message += """\n\n
-以上の計画を、git diffとして出力して。必ず行は前後3行ずつ出力すること。
-git diffはコピペで実行できるように、git apply --unidiff-zero --check <<'EOF' ～ EOFではさんで出力すること。
-
-# git diff生成ルール
-
-## 構造
-```
-diff --git a/PATH b/PATH
---- a/PATH
-+++ b/PATH
-@@ -開始,行数 +開始,行数 @@
- コンテキスト
--削除
-+追加
-```
-
-## ルール
-1. 各行は ` ` `-` `+` で開始（スペース=変更なし）
-2. ハンク行数 = コンテキスト + 削除/追加
-   - 元: コンテキスト + `-`行
-   - 新: コンテキスト + `+`行
-3. 開始行は1始まり
-
-@@のみの行は禁止。@@ -開始,行数 +開始,行数 @@を適切に出力すること。
-
-## 例
-
-変更:
-```
-@@ -0,0 +0,0 @@
- line1
--old
-+new
-```
-
-新規ファイル:
-```
-diff --git a/new.txt b/new.txt
---- /dev/null
-+++ b/new.txt
-@@ -0,0 +0,0 @@
-+line1
-+line2
-```
-
-削除ファイル:
-```
-diff --git a/old.txt b/old.txt
---- a/old.txt
-+++ /dev/null
-@@ -0,0 +0,0 @@
--line1
--line2
-```
-"""
 
     if sourcemap_paths.strip():
         sm = generate_sourcemap(sourcemap_paths)
@@ -153,20 +98,41 @@ diff --git a/old.txt b/old.txt
             message += f"\n\n{files_md}"
 
     # AI呼び出し
-    result = simple_ask(model="gpt-oss:20b", message=message, reasoning="low")
+    if submitted_exec or submitted_plan:
+        result = simple_ask(model="gpt-oss:20b", message=message, reasoning="low")
 
-    # if submitted_cmd:
-    #     result = re.sub(r"^@@$", "@@ -0,0 +0,0 @@", result, flags=re.MULTILINE)
+    elif submitted_cmd:
+        edit_data_list = build_edit_data_list(user_prompt=message, model="gpt-oss:20b", reasoning="low")
+        edit_all(edit_data_list)
+        st.write("ファイルに書き込みました。")
+
+        st.write("edit_data_list")
+        result = ""
+        for edit_data in edit_data_list:
+            result += f"""- EditData:\n"""
+            result += f"""  - {edit_data.file}\n"""
+            result += f"""  - {edit_data.type}\n"""
+            result += f"""search:\n"""
+            result += f"""```\n{edit_data.search}\n```\n"""
+            result += f"""replace:\n"""
+            result += f"""```\n{edit_data.replace}\n```\n"""
+            result += "\n----\n"
 
     st.session_state.state.ai_message = result
 
 # ---------- ダウンロード ----------
-if st.session_state.state.user_input or st.session_state.state.file_paths_input or st.session_state.state.sourcemap_paths_input:
+if (
+    st.session_state.state.user_input
+    or st.session_state.state.file_paths_input
+    or st.session_state.state.sourcemap_paths_input
+):
     input_md = ""
     if st.session_state.state.user_input:
         input_md += f"## user_text\n\n```\n{st.session_state.state.user_input}\n```\n\n"
     if st.session_state.state.file_paths_input:
-        input_md += f"## filepaths\n\n```\n{st.session_state.state.file_paths_input}\n```\n"
+        input_md += (
+            f"## filepaths\n\n```\n{st.session_state.state.file_paths_input}\n```\n"
+        )
     if st.session_state.state.sourcemap_paths_input:
         input_md += f"\n## sourcemap_paths\n\n```\n{st.session_state.state.sourcemap_paths_input}\n```\n"
 
@@ -176,11 +142,26 @@ if st.session_state.state.user_input or st.session_state.state.file_paths_input 
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.download_button("Download Input", data=input_md, file_name="user_input.md", mime="text/plain")
+        st.download_button(
+            "Download Input",
+            data=input_md,
+            file_name="user_input.md",
+            mime="text/plain",
+        )
     with col2:
-        st.download_button("Download Output", data=st.session_state.state.ai_message, file_name="ai_result.md", mime="text/plain")
+        st.download_button(
+            "Download Output",
+            data=st.session_state.state.ai_message,
+            file_name="ai_result.md",
+            mime="text/plain",
+        )
     with col3:
-        st.download_button("Download All", data=combined_md, file_name="all_result.md", mime="text/plain")
+        st.download_button(
+            "Download All",
+            data=combined_md,
+            file_name="all_result.md",
+            mime="text/plain",
+        )
 
 # ---------- AI応答表示 ----------
 if st.session_state.state.ai_message:
