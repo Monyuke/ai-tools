@@ -1,5 +1,6 @@
 import streamlit as st
 from dataclasses import dataclass
+import re
 from datetime import datetime
 from ai_tools.lib.llm import simple_ask
 from ai_tools.utils.path import normalize_path, expand_path
@@ -85,7 +86,7 @@ if submitted_exec or submitted_plan or submitted_cmd:
     elif submitted_cmd:
         message += """\n\n
 以上の計画を、git diffとして出力して。必ず行は前後3行ずつ出力すること。
-git diffはコピペで実行できるように、git apply <<'EOF' ～ EOFではさんで出力すること。
+git diffはコピペで実行できるように、git apply --unidiff-zero --check <<'EOF' ～ EOFではさんで出力すること。
 
 # git diff生成ルール
 
@@ -106,8 +107,6 @@ diff --git a/PATH b/PATH
    - 元: コンテキスト + `-`行
    - 新: コンテキスト + `+`行
 3. 開始行は1始まり
-
-@@のみの行は禁止。プレースホルダーとして必ず @@ -0,0 +0,0 @@ として出力すること。
 
 ## 例
 
@@ -153,6 +152,10 @@ diff --git a/old.txt b/old.txt
 
     # AI呼び出し
     result = simple_ask(model="gpt-oss:20b", message=message, reasoning="low")
+
+    if submitted_cmd:
+        result = re.sub(r"^@@$", "@@ -0,0 +0,0 @@", result, flags=re.MULTILINE)
+
     st.session_state.state.ai_message = result
 
 # ---------- ダウンロード ----------
