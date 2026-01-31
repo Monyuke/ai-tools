@@ -85,7 +85,7 @@ if submitted:
             message += f"\n\n{files_md}"
 
     # AI呼び出し
-    result = simple_ask(model="gpt-oss:20b", message=message)
+    result = simple_ask(model="gpt-oss:20b", message=message, reasoning="high")
     st.session_state.state.ai_message = result
 
 # ---------- ダウンロード ----------
