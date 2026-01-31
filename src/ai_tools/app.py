@@ -85,7 +85,7 @@ if submitted_exec or submitted_plan or submitted_cmd:
     elif submitted_cmd:
         message += """\n\n
 以上の計画を、git diffとして出力して。必ず行は前後3行ずつ出力すること。
-git diffはコピペで実行できるように、git apply --recount <<'EOF' ～ EOFではさんで出力すること。
+git diffはコピペで実行できるように、git apply <<'EOF' ～ EOFではさんで出力すること。
 
 # git diff生成ルール
 
@@ -94,7 +94,7 @@ git diffはコピペで実行できるように、git apply --recount <<'EOF' �
 diff --git a/PATH b/PATH
 --- a/PATH
 +++ b/PATH
-@@ -開始,行数 +開始,行数 @@
+@@ -0,0 +0,0 @@
  コンテキスト
 -削除
 +追加
@@ -107,11 +107,13 @@ diff --git a/PATH b/PATH
    - 新: コンテキスト + `+`行
 3. 開始行は1始まり
 
+@@のみの行は禁止。プレースホルダーとして必ず @@ -0,0 +0,0 @@ として出力すること。
+
 ## 例
 
 変更:
 ```
-@@ -1,2 +1,2 @@
+@@ -0,0 +0,0 @@
  line1
 -old
 +new
@@ -122,7 +124,7 @@ diff --git a/PATH b/PATH
 diff --git a/new.txt b/new.txt
 --- /dev/null
 +++ b/new.txt
-@@ -0,0 +1,2 @@
+@@ -0,0 +0,0 @@
 +line1
 +line2
 ```
@@ -132,7 +134,7 @@ diff --git a/new.txt b/new.txt
 diff --git a/old.txt b/old.txt
 --- a/old.txt
 +++ /dev/null
-@@ -1,2 +0,0 @@
+@@ -0,0 +0,0 @@
 -line1
 -line2
 ```
