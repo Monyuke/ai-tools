@@ -62,9 +62,15 @@ if user_text or file_paths or sourcemap_paths:
 # ---------- AI実行 ----------
 with st.form("ask_form"):
     st.write("上記の内容でAIに問い合わせる場合は以下のボタンを押してください")
-    submitted = st.form_submit_button("実行")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        submitted_exec = st.form_submit_button("実行")
+    with col2:
+        submitted_plan = st.form_submit_button("計画")
+    with col3:
+        submitted_cmd  = st.form_submit_button("コマンド生成")
 
-if submitted:
+if submitted_exec or submitted_plan or submitted_cmd:
     # 入力を保存
     st.session_state.state.user_input = user_text
     st.session_state.state.file_paths_input = file_paths
@@ -72,6 +78,12 @@ if submitted:
 
     # メッセージ作成
     message = user_text
+
+    # 追加フラグ
+    if submitted_plan:
+        message += "\n\n以上の要求を満たすよう計画して。"
+    elif submitted_cmd:
+        message += "\n\n以上の計画を実行するコマンドを出力して"
 
     if sourcemap_paths.strip():
         sm = generate_sourcemap(sourcemap_paths)
