@@ -4,12 +4,12 @@ from .path import normalize_path, expand_path
 from .time import format_relative_time
 import ast
 
-def read_files_content(file_paths_text: str, add_line_numbers: bool = True) -> str:
+def read_files_content(file_paths_text: str, add_line_numbers: bool = False) -> str:
     """ファイルパステキストから内容を読み込み、マークダウンで返す
     
     Args:
         file_paths_text: ファイルパスのテキスト(改行区切り)
-        add_line_numbers: 行番号を付けるかどうか(デフォルト: True)
+        add_line_numbers: 行番号を付けるかどうか(デフォルト: False)
     """
     if not file_paths_text.strip():
         return ""

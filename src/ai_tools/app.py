@@ -95,7 +95,7 @@ git diffはコピペで実行できるように、git apply --unidiff-zero --che
 diff --git a/PATH b/PATH
 --- a/PATH
 +++ b/PATH
-@@ -0,0 +0,0 @@
+@@ -開始,行数 +開始,行数 @@
  コンテキスト
 -削除
 +追加
@@ -107,6 +107,8 @@ diff --git a/PATH b/PATH
    - 元: コンテキスト + `-`行
    - 新: コンテキスト + `+`行
 3. 開始行は1始まり
+
+@@のみの行は禁止。@@ -開始,行数 +開始,行数 @@を適切に出力すること。
 
 ## 例
 
@@ -153,8 +155,8 @@ diff --git a/old.txt b/old.txt
     # AI呼び出し
     result = simple_ask(model="gpt-oss:20b", message=message, reasoning="low")
 
-    if submitted_cmd:
-        result = re.sub(r"^@@$", "@@ -0,0 +0,0 @@", result, flags=re.MULTILINE)
+    # if submitted_cmd:
+    #     result = re.sub(r"^@@$", "@@ -0,0 +0,0 @@", result, flags=re.MULTILINE)
 
     st.session_state.state.ai_message = result
 
