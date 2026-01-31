@@ -68,7 +68,7 @@ with st.form("ask_form"):
     with col2:
         submitted_plan = st.form_submit_button("計画")
     with col3:
-        submitted_cmd  = st.form_submit_button("コマンド生成")
+        submitted_cmd  = st.form_submit_button("diff生成")
 
 if submitted_exec or submitted_plan or submitted_cmd:
     # 入力を保存
@@ -83,7 +83,60 @@ if submitted_exec or submitted_plan or submitted_cmd:
     if submitted_plan:
         message += "\n\n以上の要求を満たすよう計画して。"
     elif submitted_cmd:
-        message += "\n\n以上の計画を実行するコマンドを出力して"
+        message += """\n\n
+以上の計画を、git diffとして出力して。必ず行は前後3行ずつ出力すること。
+git diffはコピペで実行できるように、git apply --recount <<'EOF' ～ EOFではさんで出力すること。
+
+# git diff生成ルール
+
+## 構造
+```
+diff --git a/PATH b/PATH
+--- a/PATH
++++ b/PATH
+@@ -開始,行数 +開始,行数 @@
+ コンテキスト
+-削除
++追加
+```
+
+## ルール
+1. 各行は ` ` `-` `+` で開始（スペース=変更なし）
+2. ハンク行数 = コンテキスト + 削除/追加
+   - 元: コンテキスト + `-`行
+   - 新: コンテキスト + `+`行
+3. 開始行は1始まり
+
+## 例
+
+変更:
+```
+@@ -1,2 +1,2 @@
+ line1
+-old
++new
+```
+
+新規ファイル:
+```
+diff --git a/new.txt b/new.txt
+--- /dev/null
++++ b/new.txt
+@@ -0,0 +1,2 @@
++line1
++line2
+```
+
+削除ファイル:
+```
+diff --git a/old.txt b/old.txt
+--- a/old.txt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-line1
+-line2
+```
+"""
 
     if sourcemap_paths.strip():
         sm = generate_sourcemap(sourcemap_paths)
