@@ -19,7 +19,7 @@ class StateManager(Generic[T]):
     key : str
         session_state 内で使用するキー
     model_cls : Type[T]
-        取り扱う dataclass（pydantic.BaseModel を継承したもの）
+        取り扱うモデルクラス（pydantic.BaseModel を継承したもの）
     """
 
     def __init__(self, key: str, model_cls: Type[T]) -> None:
@@ -49,6 +49,15 @@ class StateManager(Generic[T]):
         raise TypeError(
             f"Unsupported type stored in session_state[{self.key}]: {type(raw)}"
         )
+
+    def get_or_create(self) -> T:
+        existing = self.get()
+        if existing is not None:
+            return existing
+        # 生成
+        instance = self.model_cls()          # type: ignore[arg-type]
+        self.store(instance)
+        return instance
 
     def clear(self) -> None:
         """session_state からキーを削除"""
