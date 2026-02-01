@@ -38,17 +38,7 @@ class StateManager(Generic[T]):
         raw = st.session_state.get(self.key)
         if raw is None:
             return None
-        # 既にオブジェクトが入っている場合はそのまま返す
-        if isinstance(raw, self.model_cls):
-            return raw
-        # 文字列や dict から復元
-        if isinstance(raw, str):
-            return self.deserialize(raw)
-        if isinstance(raw, dict):
-            return self.model_cls.parse_obj(raw)
-        raise TypeError(
-            f"Unsupported type stored in session_state[{self.key}]: {type(raw)}"
-        )
+        return raw
 
     def get_or_create(self) -> T:
         existing = self.get()

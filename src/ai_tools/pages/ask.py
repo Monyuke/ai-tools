@@ -9,6 +9,8 @@ from ai_tools.page_modules.ask.ui import (
     render_downloads,
 )
 from ai_tools.page_modules.ask.logic import build_message, execute_ai, apply_edits
+from ai_tools.lib.st.markdown_viewer import markdown_viewer
+from ai_tools.lib.st.llm_document_editor import LLMDocumentEditor
 
 # 1. UI
 render_title()
@@ -48,5 +50,18 @@ if submitted_exec or submitted_plan or submitted_cmd:
 
 # 6. 出力表示
 state = state_manager.get_or_create()
-render_output(state.ai_message)
+
+
+def on_doc_change(doc: str):
+    state.ai_message = doc
+    state_manager.store(state)
+    st.rerun()
+
+
+LLMDocumentEditor(
+    document=state.ai_message,
+    extra_context=build_message("", file_paths, sourcemap_paths, False),
+    on_change=on_doc_change,
+).render()
+# markdown_viewer(state.ai_message, on_change=None)  # 編集タブは不要
 render_downloads(state)
