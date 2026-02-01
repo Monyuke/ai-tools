@@ -11,6 +11,8 @@ from ai_tools.page_modules.ask.ui import (
 from ai_tools.page_modules.ask.logic import build_message, execute_ai, apply_edits
 from ai_tools.lib.st.markdown_viewer import markdown_viewer
 from ai_tools.lib.st.llm_document_editor import LLMDocumentEditor
+from ai_tools.lib.st.state_manager.ui import state_manager_ui
+
 
 # 1. UI
 render_title()
@@ -65,3 +67,6 @@ LLMDocumentEditor(
 ).render()
 # markdown_viewer(state.ai_message, on_change=None)  # 編集タブは不要
 render_downloads(state)
+
+# 0. State‑manager UI
+state_manager_ui(state_manager)
