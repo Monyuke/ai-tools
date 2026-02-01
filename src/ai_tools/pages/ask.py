@@ -65,6 +65,8 @@ LLMDocumentEditor(
     extra_context=build_message("", file_paths, sourcemap_paths, False),
     on_change=on_doc_change,
 ).render()
+st.space("large")
+
 # markdown_viewer(state.ai_message, on_change=None)  # 編集タブは不要
 render_downloads(state)
 

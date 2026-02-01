@@ -112,7 +112,7 @@ def generate_sourcemap(file_paths_text: str) -> str:
                         imports.append((name, node.lineno))
 
             if imports:
-                content += "## Imports\n"
+                content += "### Imports\n"
                 for name, lineno in imports:
                     content += f"- {name} (line {lineno})\n"
                 content += "\n"
@@ -139,7 +139,7 @@ def generate_sourcemap(file_paths_text: str) -> str:
                     classes.append(cls)
 
             if classes:
-                content += "## Classes\n"
+                content += "### Classes\n"
                 for cls in classes:
                     content += f"- {cls['name']} (line {cls['lineno']}-{cls['end_lineno']})\n"
                     if cls['docstring']:
@@ -176,7 +176,7 @@ def generate_sourcemap(file_paths_text: str) -> str:
                     })
 
             if functions:
-                content += "## Functions\n"
+                content += "### Functions\n"
                 for func in functions:
                     content += f"- {func['name']}({func['args']}){func['return_type']} (line {func['lineno']}-{func['end_lineno']})\n"
                     if func['docstring']:
@@ -195,7 +195,7 @@ def generate_sourcemap(file_paths_text: str) -> str:
                     var_type = ast.unparse(node.annotation) if hasattr(ast, 'unparse') else str(node.annotation)
                     global_vars.append((f"{var_name}: {var_type}", node.lineno))
 
-            content += "## Global Variables\n"
+            content += "### Global Variables\n"
             if global_vars:
                 for var, lineno in global_vars:
                     content += f"- {var} (line {lineno})\n"

@@ -1,14 +1,10 @@
 # ai_tools/lib/st/llm_document_editor/editor.py
 from __future__ import annotations
 import streamlit as st
-from typing import Callable, Optional
+from typing import Callable
 from ai_tools.lib.llm_text_editor import LLMTextEditor
 from ai_tools.lib.llm_text_editor.type import Edit
-from ai_tools.lib.llm import structured_ask, simple_ask
-from ai_tools.lib.st.markdown_viewer import markdown_viewer
-from ai_tools.lib.st.state_manager import StateManager
-from pydantic import BaseModel
-from textwrap import dedent
+from ai_tools.lib.llm import simple_ask
 
 
 class LLMDocumentEditor:
@@ -35,54 +31,8 @@ class LLMDocumentEditor:
         self.extra_context = extra_context
         self.on_change = on_change
 
-        # 右カラム用の入力状態を保持
-        self._state = StateManager(
-            key="llm_doc_editor_state",
-            model_cls=BaseModel,  # ここでは汎用 BaseModel を使う
-        )
-
-    def _render_left(self):
-        """左カラム：Markdown ビューワー（編集可）"""
-        st.subheader("Document")
-        # 編集可能にするため on_change を渡す
-        markdown_viewer(
-            body=self.document,
-            on_change=lambda new_body: self._handle_left_change(new_body),
-        )
-
-    def _handle_left_change(self, new_body: str):
-        """左カラムで編集されたときに呼び出される"""
-        self.document = new_body
-        self.on_change(new_body)
-
-    def _render_right(self):
-        """右カラム：入力欄 + 実行ボタン"""
-        st.subheader("Edit Controls")
-
-        # 1. 編集対象テキスト
-        edit_text = st.text_area(
-            "Target Text",
-            value="",
-            height=200,
-            key="edit_text",
-        )
-
-        # 2. プロンプト
-        prompt = st.text_area(
-            "Edit Prompt",
-            value="",
-            height=100,
-            key="edit_prompt",
-        )
-
-        # 3. 実行ボタン
-        if st.button("Run Edit"):
-            self._run_edit(edit_text, prompt)
-
     def _run_edit(self, target_text: str, prompt: str):
         """LLM に問い合わせて編集を実行"""
-        # structured_ask で EditResponse を取得
-
         message = f"""\
 ユーザー指令に基づき、編集対象文字列を置換せよ。
 出力は、全文ではなく置換内容のみにせよ。他の一切の応答は不要。
@@ -102,7 +52,7 @@ class LLMDocumentEditor:
 
         print("message:" + str(message))
         response = simple_ask(model="gpt-oss:20b", reasoning="medium", message=message)
-        print('response:' + str(response))
+        print("response:" + str(response))
         edit = Edit(
             search=target_text,
             replace=response,
@@ -119,11 +69,59 @@ class LLMDocumentEditor:
         self.on_change(new_text)
 
     def render(self):
-        """全体レイアウトを描画"""
-        col_left, col_right = st.columns([2, 1])
+        """全体レイアウトを描画（タブ形式）"""
+        # タブラベルを作成
+        tab_labels = ["Preview", "Code", "Edit", "AI Edit"]
 
-        with col_left:
-            self._render_left()
+        # タブを作成
+        tabs = st.tabs(tab_labels)
 
-        with col_right:
-            self._render_right()
+        # Preview タブ
+        with tabs[0]:
+            st.markdown(self.document, unsafe_allow_html=True)
+
+        # Code タブ
+        with tabs[1]:
+            st.code(self.document, language="markdown")
+
+        # Edit タブ
+        edit_key = f"llm_doc_editor_edit_{id(self.document)}"
+
+        def _on_change_wrapper() -> None:
+            """内部コールバック: 最新のテキストを取得して外部コールバックへ渡す"""
+            current_text = st.session_state.get(edit_key, self.document)
+            self.document = current_text
+            self.on_change(current_text)
+
+        with tabs[2]:
+            st.text_area(
+                label="Edit Markdown",
+                value=self.document,
+                height=400,
+                key=edit_key,
+                on_change=_on_change_wrapper,
+            )
+
+        # AI Edit タブ
+        with tabs[3]:
+            # 1. 編集対象テキスト
+            edit_text = st.text_area(
+                "Target Text",
+                value="",
+                height=200,
+                key="ai_edit_text",
+            )
+
+            # 2. プロンプト
+            prompt = st.text_area(
+                "Edit Prompt",
+                value="",
+                height=200,
+                key="ai_edit_prompt",
+            )
+
+            # 3. 実行ボタン
+            if st.button("Run Edit"):
+                self._run_edit(edit_text, prompt)
+
+            st.markdown(self.document, unsafe_allow_html=True)

@@ -1,5 +1,6 @@
 import streamlit as st
 from .state import AppState
+from .logic import build_message
 
 
 def render_title():
@@ -25,13 +26,8 @@ def render_input_area():
 
 def render_download_button(user_text, file_paths, sourcemap_paths):
     if user_text or file_paths or sourcemap_paths:
-        md = ""
-        if user_text:
-            md += f"## user_text\n\n```\n{user_text}\n```\n\n"
-        if file_paths:
-            md += f"## filepaths\n\n```\n{file_paths}\n```\n"
-        if sourcemap_paths:
-            md += f"\n## sourcemap_paths\n\n```\n{sourcemap_paths}\n```\n"
+        md = build_message(user_text, file_paths, sourcemap_paths, False)
+
         st.download_button(
             "Download Input with Files",
             data=md,
@@ -72,6 +68,9 @@ def render_downloads(state: AppState):
 
     combined_md = input_md
     if state.ai_message:
+        combined_md = build_message(
+            state.user_input, state.file_paths_input, state.sourcemap_paths_input, False
+        )
         combined_md += f"\n## output\n\n{state.ai_message}\n"
 
     col1, col2, col3 = st.columns(3)

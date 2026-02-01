@@ -13,6 +13,7 @@ def build_message(user_text, file_paths, sourcemap_paths, plan_flag):
         if sm:
             message += f"\n\n## Sourcemap\n{sm}"
     if file_paths.strip():
+        message += "\n\n## Files\n"
         files_md = read_files_content(file_paths)
         if files_md:
             message += f"\n\n{files_md}"
