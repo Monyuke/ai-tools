@@ -5,11 +5,9 @@ from ai_tools.page_modules.ask.ui import (
     render_input_area,
     render_download_button,
     render_form,
-    render_output,
     render_downloads,
 )
 from ai_tools.page_modules.ask.logic import build_message, execute_ai, apply_edits
-from ai_tools.lib.st.markdown_viewer import markdown_viewer
 from ai_tools.lib.st.llm_document_editor import LLMDocumentEditor
 from ai_tools.lib.st.state_manager.ui import state_manager_ui
 
@@ -55,6 +53,14 @@ LLMDocumentEditor(
     extra_context=build_message("", file_paths, sourcemap_paths, False),
     on_change=on_doc_change,
 ).render()
+
+st.space("small")
+
+combined_md = build_message(
+    state.user_input, state.file_paths_input, state.sourcemap_paths_input, False
+)
+combined_md += f"\n## output\n\n{state.ai_message}\n"
+
 st.space("large")
 
 # markdown_viewer(state.ai_message, on_change=None)  # 編集タブは不要
