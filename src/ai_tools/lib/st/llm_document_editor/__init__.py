@@ -29,7 +29,7 @@ class LLMDocumentEditor:
         self,
         document: str,
         on_change: Callable[[str], None],
-        extra_context: str="",
+        extra_context: str = "",
     ):
         self.document = document
         self.extra_context = extra_context
@@ -84,11 +84,8 @@ class LLMDocumentEditor:
         # structured_ask で EditResponse を取得
 
         message = f"""\
-ユーザー指令に基づき、編集データを生成せよ。
-
-データ形式：
-search：置換対象（完全一致）。複数行可。
-replace：置換後文字列。複数行可。
+ユーザー指令に基づき、編集対象文字列を置換せよ。
+出力は、全文ではなく置換内容のみにせよ。他の一切の応答は不要。
 
 編集対象文字列：
 {target_text}
@@ -103,18 +100,19 @@ replace：置換後文字列。複数行可。
         if self.extra_context:
             message += f"参考情報：\n{self.extra_context}\n\n"
 
-        print('message:' + str(message))
-        edit: Edit = structured_ask(
-            model="gpt-oss:20b", schema=Edit, reasoning="low", message=message
+        print("message:" + str(message))
+        response = simple_ask(model="gpt-oss:20b", reasoning="medium", message=message)
+        print('response:' + str(response))
+        edit = Edit(
+            search=target_text,
+            replace=response,
         )
-        edit.search = target_text # LLMで表記揺れが発生しがちなので入れ直す。
-        print('response:' + str(edit))
 
         # LLMTextEditor で実際に編集
-        print('target_text:' + str(target_text))
+        print("target_text:" + str(target_text))
         editor = LLMTextEditor(self.document)
         new_text = editor.apply_edits([edit])
-        print('new_text:' + str(new_text))
+        print("new_text:" + str(new_text))
 
         # 変更を反映
         self.document = new_text
