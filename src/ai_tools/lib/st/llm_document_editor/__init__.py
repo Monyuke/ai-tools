@@ -123,5 +123,3 @@ class LLMDocumentEditor:
             # 3. 実行ボタン
             if st.button("Run Edit"):
                 self._run_edit(edit_text, prompt)
-
-            st.markdown(self.document, unsafe_allow_html=True)
