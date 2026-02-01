@@ -38,17 +38,15 @@ def render_download_button(user_text, file_paths, sourcemap_paths):
 
 
 def render_form():
+    """Render Execute / Plan buttons only."""
     with st.form("ask_form"):
-        st.write("上記の内容でAIに問い合わせる場合は以下のボタンを押してください")
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         with col1:
             submitted_exec = st.form_submit_button("実行")
         with col2:
             submitted_plan = st.form_submit_button("計画")
-        with col3:
-            submitted_cmd = st.form_submit_button("適用")
-    return submitted_exec, submitted_plan, submitted_cmd
-
+        # 以前は submitted_cmd もここで取得していた
+    return submitted_exec, submitted_plan
 
 def render_output(ai_message):
     if ai_message:

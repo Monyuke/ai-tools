@@ -20,10 +20,10 @@ user_text, file_paths, sourcemap_paths = render_input_area()
 render_download_button(user_text, file_paths, sourcemap_paths)
 
 # 2. Form & actions
-submitted_exec, submitted_plan, submitted_cmd = render_form()
+submitted_exec, submitted_plan = render_form()
 
 # 3. State 保存
-if submitted_exec or submitted_plan or submitted_cmd:
+if submitted_exec or submitted_plan:
     state = state_manager.get_or_create()
     state.user_input = user_text
     state.file_paths_input = file_paths
@@ -36,16 +36,6 @@ if submitted_exec or submitted_plan or submitted_cmd:
     # 5. AI 呼び出し
     if submitted_exec or submitted_plan:
         result = execute_ai(message)
-        state.ai_message = result
-    elif submitted_cmd:
-        edit_list = apply_edits(message)
-        # ここで編集結果を文字列化して state.ai_message に格納
-        result = ""
-        for ed in edit_list:
-            result += f"- EditData: {ed.file} ({ed.type})\n"
-            result += f"  search:\n```\n{ed.search}\n```\n"
-            result += f"  replace:\n```\n{ed.replace}\n```\n"
-            result += "\n----\n"
         state.ai_message = result
 
     state_manager.store(state)
