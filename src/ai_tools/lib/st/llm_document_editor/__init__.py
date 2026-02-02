@@ -51,7 +51,7 @@ class LLMDocumentEditor:
             message += f"参考情報：\n{self.extra_context}\n\n"
 
         print("message:" + str(message))
-        response = simple_ask(model="gpt-oss:20b", reasoning="medium", message=message)
+        response = simple_ask(model="gpt-oss:120b", reasoning="low", message=message)
         print("response:" + str(response))
         edit = Edit(
             search=target_text,

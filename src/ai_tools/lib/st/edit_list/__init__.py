@@ -18,7 +18,7 @@ def edit_list_builder(prompt: str) -> None:
         with st.spinner("Generating edit list..."):
             edits = build_edit_data_list(
                 user_prompt=prompt,
-                model="gpt-oss:20b",
+                model="gpt-oss:120b",
                 reasoning="low"
             )
             st.session_state.generated_edits = edits
