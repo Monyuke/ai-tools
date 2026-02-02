@@ -10,6 +10,7 @@ from ai_tools.page_modules.ask.ui import (
 from ai_tools.page_modules.ask.logic import build_message, execute_ai, apply_edits
 from ai_tools.lib.st.llm_document_editor import LLMDocumentEditor
 from ai_tools.lib.st.state_manager.ui import state_manager_ui
+from ai_tools.lib.st.edit_list import edit_list_builder
 
 
 # 1. UI
@@ -56,10 +57,11 @@ LLMDocumentEditor(
 
 st.space("small")
 
-combined_md = build_message(
-    state.user_input, state.file_paths_input, state.sourcemap_paths_input, False
-)
-combined_md += f"\n## output\n\n{state.ai_message}\n"
+# combined_md = build_message(
+#     state.user_input, state.file_paths_input, state.sourcemap_paths_input, False
+# )
+# combined_md += f"\n## output\n\n{state.ai_message}\n"
+# edit_list_builder(combined_md)
 
 st.space("large")
 
