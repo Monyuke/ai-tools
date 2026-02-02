@@ -9,6 +9,8 @@ from langchain_core.messages import messages_to_dict
 
 
 def simple_ask(model: str, message: str, reasoning="low", tools: List[Any] = []) -> str:
+    if "gpt-oss" not in model:
+        reasoning = None
     llm = ChatOllama(
         model=model, reasoning=reasoning, 
         # 返答の固定度があがる。
@@ -21,6 +23,8 @@ def simple_ask(model: str, message: str, reasoning="low", tools: List[Any] = [])
 
 
 def structured_ask(model: str, message: str, schema: Any, reasoning="low") -> Any:
+    if "gpt-oss" not in model:
+        reasoning = None
     # agentだと構造化出力が使えない
     llm = ChatOllama(
         model=model, reasoning=reasoning, temperature=0, top_p=1.0, top_k=0
@@ -33,6 +37,8 @@ def structured_ask(model: str, message: str, schema: Any, reasoning="low") -> An
 def tool_call(
     model: str, message: str, reasoning="low", tools: List[Any] = []
 ) -> List[dict]:
+    if "gpt-oss" not in model:
+        reasoning = None
     # agentだと構造化出力が使えないのでレスポンスから抽出する。
     llm = ChatOllama(
         model=model, reasoning=reasoning, temperature=0, top_p=1.0, top_k=0

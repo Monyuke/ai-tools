@@ -1,4 +1,3 @@
-# ai_tools/lib/st/llm_document_editor/editor.py
 from __future__ import annotations
 import streamlit as st
 from typing import Callable
@@ -51,7 +50,9 @@ class LLMDocumentEditor:
             message += f"参考情報：\n{self.extra_context}\n\n"
 
         print("message:" + str(message))
-        response = simple_ask(model="gpt-oss:120b", reasoning="low", message=message)
+        response = simple_ask(
+            model="qwen3:14b", reasoning="low", message=message
+        )
         print("response:" + str(response))
         edit = Edit(
             search=target_text,
