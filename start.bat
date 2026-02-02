@@ -1,1 +1,1 @@
-poetry run streamlit run src/ai_tools/app.py
+poetry run streamlit run src/ai_tools/app.py --server.headless true
