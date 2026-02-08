@@ -3,6 +3,9 @@ from ai_tools.lib.llm import chat
 
 st.title("Chat")
 
+# システムプロンプト（ハードコード）
+SYSTEM_PROMPT = ""  # 空の場合は追加されない
+
 # セッション状態の初期化
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -13,6 +16,10 @@ if "deleting_index" not in st.session_state:
 
 # 既存のメッセージを表示
 for idx, message in enumerate(st.session_state.messages):
+    # システムメッセージは表示しない
+    if message["role"] == "system":
+        continue
+        
     with st.chat_message(message["role"]):
         # 編集モードかどうか
         if st.session_state.editing_index == idx:
@@ -61,6 +68,10 @@ for idx, message in enumerate(st.session_state.messages):
 
 # ユーザー入力
 if prompt := st.chat_input("メッセージを入力"):
+    # システムプロンプトを追加（空でなければ、かつまだ追加されていなければ）
+    if SYSTEM_PROMPT and (not st.session_state.messages or st.session_state.messages[0]["role"] != "system"):
+        st.session_state.messages.insert(0, {"role": "system", "content": SYSTEM_PROMPT})
+    
     # ユーザーメッセージを追加
     st.session_state.messages.append({"role": "user", "content": prompt})
     
