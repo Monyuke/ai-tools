@@ -6,18 +6,63 @@ st.title("Chat")
 # セッション状態の初期化
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "editing_index" not in st.session_state:
+    st.session_state.editing_index = None
+if "deleting_index" not in st.session_state:
+    st.session_state.deleting_index = None
 
 # 既存のメッセージを表示
-for message in st.session_state.messages:
+for idx, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+        # 編集モードかどうか
+        if st.session_state.editing_index == idx:
+            # 編集フォーム
+            new_content = st.text_area(
+                "メッセージを編集",
+                value=message["content"],
+                key=f"edit_{idx}"
+            )
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("保存", key=f"save_{idx}"):
+                    st.session_state.messages[idx]["content"] = new_content
+                    st.session_state.editing_index = None
+                    st.rerun()
+            with col2:
+                if st.button("キャンセル", key=f"cancel_{idx}"):
+                    st.session_state.editing_index = None
+                    st.rerun()
+        # 削除確認モードかどうか
+        elif st.session_state.deleting_index == idx:
+            st.warning("このメッセージを削除しますか？")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("削除する", key=f"confirm_delete_{idx}", type="primary"):
+                    st.session_state.messages.pop(idx)
+                    st.session_state.deleting_index = None
+                    st.rerun()
+            with col2:
+                if st.button("キャンセル", key=f"cancel_delete_{idx}"):
+                    st.session_state.deleting_index = None
+                    st.rerun()
+        else:
+            # 通常表示
+            col1, col2, col3 = st.columns([10, 1, 1])
+            with col1:
+                st.markdown(message["content"])
+            with col2:
+                if st.button("✏️", key=f"edit_btn_{idx}", help="編集"):
+                    st.session_state.editing_index = idx
+                    st.rerun()
+            with col3:
+                if st.button("🗑️", key=f"delete_{idx}", help="削除"):
+                    st.session_state.deleting_index = idx
+                    st.rerun()
 
 # ユーザー入力
 if prompt := st.chat_input("メッセージを入力"):
-    # ユーザーメッセージを追加・表示
+    # ユーザーメッセージを追加
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
     
     # LLMに送信（chat関数は全履歴を {"role": ..., "content": ...} 形式で返す）
     st.session_state.messages = chat(
@@ -27,9 +72,5 @@ if prompt := st.chat_input("メッセージを入力"):
         tools=[]
     )
     
-    # 新しく追加されたメッセージ（最後のAI応答）を表示
-    if st.session_state.messages:
-        last_message = st.session_state.messages[-1]
-        if last_message["role"] == "assistant":
-            with st.chat_message("assistant"):
-                st.markdown(last_message["content"])
+    # 再描画
+    st.rerun()
